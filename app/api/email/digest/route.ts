@@ -3,10 +3,10 @@ import { getStats, getJobsNeedingFollowUp } from '@/lib/data'
 import { isAuthorized } from '@/lib/api-guard'
 import type { Job } from '@/lib/types'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 export async function POST(request: Request) {
-  if (!isAuthorized(request)) {
+  const resend = new Resend(process.env.RESEND_API_KEY)
+
+  if (!(await isAuthorized(request))) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
