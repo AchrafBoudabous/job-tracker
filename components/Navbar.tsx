@@ -11,7 +11,9 @@ import {
   TrophyIcon,
   MenuIcon,
   XIcon,
+  LogOutIcon,
 } from 'lucide-react'
+import { signOut } from '@/app/auth/actions'
 
 const links = [
   { href: '/',             label: 'Dashboard',    icon: LayoutDashboardIcon },
@@ -20,7 +22,11 @@ const links = [
   { href: '/achievements', label: 'Achievements', icon: TrophyIcon },
 ]
 
-export default function Navbar() {
+interface Props {
+  userEmail?: string
+}
+
+export default function Navbar({ userEmail }: Props) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
 
@@ -38,6 +44,7 @@ export default function Navbar() {
           <span>JobTracker</span>
         </Link>
 
+        {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-0.5">
           {links.map(({ href, label, icon: Icon }) => (
             <Link
@@ -53,6 +60,7 @@ export default function Navbar() {
               {label}
             </Link>
           ))}
+
           <Link
             href="/applications/new"
             className="flex items-center gap-1.5 ml-3 px-4 py-2 bg-sky-500 text-white rounded-lg text-sm font-semibold hover:bg-sky-400 transition-colors"
@@ -60,8 +68,28 @@ export default function Navbar() {
             <PlusIcon className="w-4 h-4" />
             Add Job
           </Link>
+
+          {/* User email + sign-out */}
+          <div className="flex items-center gap-2 ml-3 pl-3 border-l border-slate-700">
+            {userEmail && (
+              <span className="text-slate-500 text-xs hidden lg:block max-w-35 truncate" title={userEmail}>
+                {userEmail}
+              </span>
+            )}
+            <form action={signOut}>
+              <button
+                type="submit"
+                title="Sign out"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              >
+                <LogOutIcon className="w-4 h-4" />
+                <span className="hidden lg:inline">Sign out</span>
+              </button>
+            </form>
+          </div>
         </div>
 
+        {/* Mobile: Add + hamburger */}
         <div className="flex md:hidden items-center gap-2">
           <Link
             href="/applications/new"
@@ -81,6 +109,7 @@ export default function Navbar() {
         </div>
       </div>
 
+      {/* Mobile dropdown */}
       {open && (
         <div className="md:hidden border-t border-slate-800 bg-slate-900 px-4 py-3 space-y-1">
           {links.map(({ href, label, icon: Icon }) => (
@@ -98,7 +127,7 @@ export default function Navbar() {
               {label}
             </Link>
           ))}
-          <div className="pt-2 pb-1">
+          <div className="pt-2 pb-1 space-y-1">
             <Link
               href="/applications/new"
               onClick={() => setOpen(false)}
@@ -107,6 +136,16 @@ export default function Navbar() {
               <PlusIcon className="w-4 h-4" />
               Add New Job
             </Link>
+
+            <form action={signOut}>
+              <button
+                type="submit"
+                className="w-full flex items-center gap-3 px-3 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl text-sm font-medium transition-colors"
+              >
+                <LogOutIcon className="w-4 h-4" />
+                Sign out{userEmail ? ` (${userEmail})` : ''}
+              </button>
+            </form>
           </div>
         </div>
       )}

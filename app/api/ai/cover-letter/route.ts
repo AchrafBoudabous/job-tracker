@@ -1,14 +1,46 @@
 import Groq from 'groq-sdk'
+import { createClient } from '@/lib/supabase/server'
 import { isAuthorized } from '@/lib/api-guard'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 const client = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
+const RATE_LIMIT = 10
+const RATE_WINDOW_MS = 60_000
+
 export async function POST(request: Request) {
-  if (!isAuthorized(request)) {
+  if (!(await isAuthorized(request))) {
     return new Response('Unauthorized', { status: 401 })
   }
 
-  const { role, company, jobDescription, notes, background } = await request.json()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const rateLimitKey = `cover-letter:${user?.id ?? 'service'}`
+
+  if (!checkRateLimit(rateLimitKey, RATE_LIMIT, RATE_WINDOW_MS)) {
+    return new Response('Too Many Requests — please wait a moment before generating another cover letter.', {
+      status: 429,
+      headers: { 'Retry-After': '60' },
+    })
+  }
+
+  let body: { role?: unknown; company?: unknown; jobDescription?: unknown; notes?: unknown; background?: unknown }
+  try {
+    body = await request.json()
+  } catch {
+    return new Response('Invalid JSON body', { status: 400 })
+  }
+
+  const role    = typeof body.role    === 'string' ? body.role.slice(0, 200)    : ''
+  const company = typeof body.company === 'string' ? body.company.slice(0, 200) : ''
+
+  if (!role || !company) {
+    return new Response('role and company are required', { status: 400 })
+  }
+
+  const jobDescription = typeof body.jobDescription === 'string' ? body.jobDescription.slice(0, 10_000) : ''
+  const notes          = typeof body.notes          === 'string' ? body.notes.slice(0, 5_000)          : ''
+  const background     = typeof body.background     === 'string' ? body.background.slice(0, 5_000)     : ''
 
   const prompt = `Write a compelling, personalized cover letter for this job application.
 

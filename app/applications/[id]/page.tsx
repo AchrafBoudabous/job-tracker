@@ -18,6 +18,7 @@ import {
   createApplicationPackage,
   deleteApplicationPackage,
 } from '@/app/actions'
+import { safeHref } from '@/lib/safe-href'
 
 const miniInputCls =
   'w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100 transition-colors'
@@ -59,7 +60,7 @@ export default async function ApplicationDetailPage({
         <div className="flex items-center gap-3 shrink-0 sm:ml-4">
           {job.job_url && (
             <a
-              href={job.job_url}
+              href={safeHref(job.job_url)}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-sm font-medium text-sky-600 hover:text-sky-500 transition-colors"
@@ -162,7 +163,7 @@ export default async function ApplicationDetailPage({
                       <a href={`mailto:${contact.email}`} className="text-sky-600 hover:underline">{contact.email}</a>
                     )}
                     {contact.linkedin_url && (
-                      <a href={contact.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:underline">LinkedIn</a>
+                      <a href={safeHref(contact.linkedin_url)} target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:underline">LinkedIn</a>
                     )}
                   </div>
                   {contact.notes && <p className="text-slate-400 text-xs mt-1">{contact.notes}</p>}
@@ -255,7 +256,7 @@ export default async function ApplicationDetailPage({
                     {pkg.cv_version_label ?? 'CV Package'}
                   </p>
                   {pkg.cv_file_url && (
-                    <a href={pkg.cv_file_url} target="_blank" rel="noopener noreferrer" className="text-xs text-sky-600 hover:underline flex items-center gap-1">
+                    <a href={safeHref(pkg.cv_file_url)} target="_blank" rel="noopener noreferrer" className="text-xs text-sky-600 hover:underline flex items-center gap-1">
                       <ExternalLinkIcon className="w-3 h-3" /> View CV
                     </a>
                   )}
