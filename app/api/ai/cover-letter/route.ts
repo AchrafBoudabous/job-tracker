@@ -3,12 +3,13 @@ import { createClient } from '@/lib/supabase/server'
 import { isAuthorized } from '@/lib/api-guard'
 import { checkRateLimit } from '@/lib/rate-limit'
 
-const client = new Groq({ apiKey: process.env.GROQ_API_KEY })
-
 const RATE_LIMIT = 10
 const RATE_WINDOW_MS = 60_000
 
 export async function POST(request: Request) {
+  // Instantiated inside the handler so it only runs at request time,
+  // not at build time when env vars are unavailable.
+  const client = new Groq({ apiKey: process.env.GROQ_API_KEY })
   if (!(await isAuthorized(request))) {
     return new Response('Unauthorized', { status: 401 })
   }
