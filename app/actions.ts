@@ -32,7 +32,7 @@ function parse<T>(schema: { safeParse: (v: unknown) => { success: boolean; data?
 }
 
 export async function createJob(formData: FormData) {
-  const { supabase } = await requireUser()
+  const { supabase, user } = await requireUser()
 
   const data = parse(JobSchema, {
     company:                  formData.get('company'),
@@ -48,7 +48,7 @@ export async function createJob(formData: FormData) {
     job_description_snapshot: formData.get('job_description_snapshot'),
   })
 
-  const { error } = await supabase.from('jobs').insert(data)
+  const { error } = await supabase.from('jobs').insert({ ...data, user_id: user.id })
   if (error) throw new Error(error.message)
 
   revalidatePath('/applications')

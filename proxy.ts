@@ -7,7 +7,9 @@ export async function proxy(request: NextRequest) {
 
   // Public routes — skip auth entirely
   const isPublic =
-    pathname.startsWith('/login') || pathname.startsWith('/auth')
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/signup') ||
+    pathname.startsWith('/auth')
 
   let user = null
 
@@ -42,7 +44,7 @@ export async function proxy(request: NextRequest) {
     user = data.user
 
     if (isPublic) {
-      if (user && pathname === '/login') {
+      if (user && (pathname === '/login' || pathname === '/signup')) {
         const url = request.nextUrl.clone()
         url.pathname = '/'
         return NextResponse.redirect(url)
