@@ -13,9 +13,13 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
+  // getSession() reads the cookie locally — no network call.
+  // Security-critical auth is already handled by the proxy (which uses getUser()).
+  // Here we only need the email to display in the Navbar.
   const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    data: { session },
+  } = await supabase.auth.getSession()
+  const user = session?.user
 
   return (
     <html lang="en">

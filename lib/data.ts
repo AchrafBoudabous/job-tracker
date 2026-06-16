@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import type { Job, JobWithPackage, InterviewRound, Contact } from '@/lib/types'
 
@@ -14,7 +15,10 @@ function isoDate(d: Date) {
   return d.toISOString().split('T')[0]
 }
 
-export async function getJobs(): Promise<Job[]> {
+// cache() deduplicates this within a single render: getStats(), getWeeklyStats(),
+// getJobsNeedingFollowUp(), and getRejectionStats() all call getJobs() — without
+// this they each fire a separate SELECT. With cache() it runs once.
+export const getJobs = cache(async (): Promise<Job[]> => {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('jobs')
@@ -26,7 +30,7 @@ export async function getJobs(): Promise<Job[]> {
     return []
   }
   return data ?? []
-}
+})
 
 export async function getJob(id: string): Promise<JobWithPackage | null> {
   const supabase = await createClient()
