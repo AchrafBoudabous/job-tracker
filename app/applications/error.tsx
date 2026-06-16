@@ -22,7 +22,7 @@ export default function ApplicationsError({
       </div>
       <h2 className="text-xl font-bold text-slate-900">Failed to load applications</h2>
       <p className="text-slate-500 mt-2 text-sm max-w-xs">
-        {error.message || 'Could not connect to the database. Check your Supabase credentials.'}
+        Could not load your applications. Please try again.
       </p>
       <div className="flex gap-3 mt-6">
         <button

@@ -12,7 +12,7 @@ export interface Job {
   role: string
   location: string | null
   job_url: string | null
-  job_description_snapshot: string | null
+  job_description_snapshot?: string | null
   status: ApplicationStatus
   applied_date: string | null
   follow_up_date: string | null

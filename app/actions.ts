@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { z } from 'zod'
 import {
   JobSchema,
   InterviewRoundSchema,
@@ -23,12 +24,10 @@ async function requireUser() {
   return { supabase, user }
 }
 
-function parse<T>(schema: { safeParse: (v: unknown) => { success: boolean; data?: T; error?: { issues: { message: string }[] } } }, data: unknown): T {
+function parse<S extends z.ZodTypeAny>(schema: S, data: unknown): z.infer<S> {
   const result = schema.safeParse(data)
-  if (!result.success) {
-    throw new Error(result.error!.issues[0].message)
-  }
-  return result.data!
+  if (!result.success) throw new Error(result.error.issues[0].message)
+  return result.data
 }
 
 export async function createJob(formData: FormData) {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useRef } from 'react'
 import { SearchIcon } from 'lucide-react'
 
@@ -16,10 +16,11 @@ interface Props {
 export default function SearchSortBar({ initialQ, initialSort, initialDir }: Props) {
   const router = useRouter()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   function push(updates: Record<string, string>) {
-    const params = new URLSearchParams(window.location.search)
+    const params = new URLSearchParams(searchParams.toString())
     Object.entries(updates).forEach(([k, v]) => {
       if (v) params.set(k, v)
       else params.delete(k)

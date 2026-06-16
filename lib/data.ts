@@ -18,11 +18,15 @@ function isoDate(d: Date) {
 // cache() deduplicates this within a single render: getStats(), getWeeklyStats(),
 // getJobsNeedingFollowUp(), and getRejectionStats() all call getJobs() — without
 // this they each fire a separate SELECT. With cache() it runs once.
+// Excludes job_description_snapshot (large text, only needed on the detail page via getJob())
+const LIST_FIELDS =
+  'id, company, role, location, job_url, status, applied_date, follow_up_date, salary_range, source, notes, created_at, updated_at'
+
 export const getJobs = cache(async (): Promise<Job[]> => {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('jobs')
-    .select('*')
+    .select(LIST_FIELDS)
     .order('created_at', { ascending: false })
 
   if (error) {

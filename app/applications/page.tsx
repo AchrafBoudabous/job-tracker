@@ -1,8 +1,11 @@
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { getJobs } from '@/lib/data'
 import StatusBadge from '@/components/StatusBadge'
 import SearchSortBar from '@/components/SearchSortBar'
 import type { ApplicationStatus, Job } from '@/lib/types'
+import { APPLICATION_STATUSES } from '@/lib/validation'
+import { safeHref } from '@/lib/safe-href'
 import { ExternalLinkIcon } from 'lucide-react'
 
 const STATUS_FILTERS: { value: ApplicationStatus | 'all'; label: string }[] = [
@@ -31,13 +34,19 @@ export default async function ApplicationsPage({
 }: {
   searchParams: Promise<{ status?: string; q?: string; sort?: string; dir?: string }>
 }) {
-  const { status, q = '', sort = 'created_at', dir = 'desc' } = await searchParams
+  const { status: rawStatus, q = '', sort = 'created_at', dir = 'desc' } = await searchParams
+
+  // Reject unknown status values — prevents silent zero-result pages from URL tampering
+  const status = rawStatus && APPLICATION_STATUSES.includes(rawStatus as ApplicationStatus)
+    ? rawStatus as ApplicationStatus
+    : undefined
+
   const all = await getJobs()
 
   const sortField: SortField = VALID_SORTS.includes(sort as SortField) ? (sort as SortField) : 'created_at'
   const sortDir = dir === 'asc' ? 1 : -1
 
-  let filtered = status && status !== 'all' ? all.filter((j) => j.status === status) : [...all]
+  let filtered = status ? all.filter((j) => j.status === status) : [...all]
 
   if (q.trim()) {
     const query = q.toLowerCase()
@@ -55,6 +64,12 @@ export default async function ApplicationsPage({
     return av.localeCompare(bv) * sortDir
   })
 
+  // Single-pass count — avoids 6× O(n) filter calls in the tab render loop
+  const statusCounts = all.reduce<Record<string, number>>((acc, j) => {
+    acc[j.status] = (acc[j.status] ?? 0) + 1
+    return acc
+  }, {})
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3">
@@ -69,7 +84,7 @@ export default async function ApplicationsPage({
 
       <div className="flex flex-wrap gap-2">
         {STATUS_FILTERS.map(({ value, label }) => {
-          const count = value === 'all' ? all.length : all.filter((j) => j.status === value).length
+          const count = value === 'all' ? all.length : (statusCounts[value] ?? 0)
           const active = (value === 'all' && !status) || status === value
           return (
             <Link
@@ -87,7 +102,9 @@ export default async function ApplicationsPage({
         })}
       </div>
 
-      <SearchSortBar initialQ={q} initialSort={sortField} initialDir={dir === 'asc' ? 'asc' : 'desc'} />
+      <Suspense fallback={<div className="h-10 bg-slate-100 animate-pulse rounded-lg" />}>
+        <SearchSortBar initialQ={q} initialSort={sortField} initialDir={dir === 'asc' ? 'asc' : 'desc'} />
+      </Suspense>
 
       {filtered.length === 0 ? (
         <div className="text-center py-24 bg-white rounded-2xl border border-slate-100 shadow-sm">
@@ -141,7 +158,7 @@ export default async function ApplicationsPage({
                   <div className="flex items-center gap-2 shrink-0 pt-0.5">
                     {job.job_url && (
                       <a
-                        href={job.job_url}
+                        href={safeHref(job.job_url)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-slate-300 hover:text-slate-500 transition-colors"
@@ -202,7 +219,7 @@ export default async function ApplicationsPage({
                           Edit
                         </Link>
                         {job.job_url && (
-                          <a href={job.job_url} target="_blank" rel="noopener noreferrer" className="text-slate-300 hover:text-slate-500 transition-colors">
+                          <a href={safeHref(job.job_url)} target="_blank" rel="noopener noreferrer" className="text-slate-300 hover:text-slate-500 transition-colors">
                             <ExternalLinkIcon className="w-3.5 h-3.5" />
                           </a>
                         )}

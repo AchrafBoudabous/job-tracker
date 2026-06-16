@@ -2,6 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 export async function signIn(
   _prevState: { error: string } | null,
@@ -25,6 +27,11 @@ export async function signUp(
   _prevState: { error: string } | { success: true } | null,
   formData: FormData
 ): Promise<{ error: string } | { success: true }> {
+  const ip = ((await headers()).get('x-forwarded-for') ?? 'unknown').split(',')[0].trim()
+  if (!checkRateLimit(`signup:${ip}`, 5, 60 * 60 * 1000)) {
+    return { error: 'Too many sign-up attempts. Please try again in an hour.' }
+  }
+
   const email    = (formData.get('email')           as string).trim().toLowerCase()
   const password =  formData.get('password')        as string
   const confirm  =  formData.get('confirmPassword') as string
