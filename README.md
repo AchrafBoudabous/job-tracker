@@ -1,62 +1,60 @@
-# job-tracker
+# JobTracker
 
-Personal job application tracker built with Next.js 16, Supabase, and Groq AI.
-
-## Stack
-
-- **Framework**: Next.js 16.2 (App Router, Server Actions, Turbopack)
-- **Database**: Supabase (PostgreSQL + RLS)
-- **AI**: Groq API (`llama-3.3-70b-versatile`) — cover letter generator, interview prep coach
-- **Email**: Resend — weekly digest
-- **Charts**: Recharts
-- **Styling**: Tailwind CSS v4
+A personal job application tracker built with Next.js and Supabase. Keep track of every application, interview round, and contact in one place.
 
 ## Features
 
-- Track applications with status, salary, location, follow-up dates
-- Interview rounds, contacts, and application packages per job
-- AI cover letter generator and interview prep coach (streamed)
-- Weekly goal tracker with streak and sparkline
-- Milestone badges, rejection pattern analyzer, salary intelligence
-- Ghosting detector (flags jobs with no activity for 14+ days)
-- Email digest with pipeline summary and follow-ups
+- Add and manage job applications with status tracking (Saved, Applied, Interview, Offer, Rejected, Withdrawn)
+- Record interview rounds, contacts, and application packages per job
+- Search, filter, and sort your applications
+- Dashboard with stats and charts (applications by month, rejection analysis, salary ranges)
+- AI-powered cover letter generator and interview prep coach (via Groq)
+- Weekly email digest (via Resend)
+- Multi-user — each account sees only their own data
 
-## Setup
+## Tech Stack
 
-**1. Install dependencies**
+- **Framework:** Next.js 16 (App Router, Server Actions)
+- **Database & Auth:** Supabase (PostgreSQL + Row Level Security)
+- **Styling:** Tailwind CSS
+- **AI:** Groq SDK
+- **Email:** Resend
+- **Charts:** Recharts
+
+## Getting Started
+
+### 1. Clone and install
+
 ```bash
+git clone https://github.com/AchrafBoudabous/job-tracker.git
+cd job-tracker
 npm install
 ```
 
-**2. Create `.env.local`**
+### 2. Set up environment variables
+
+Create a `.env.local` file in the root:
+
 ```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 GROQ_API_KEY=your_groq_api_key
 RESEND_API_KEY=your_resend_api_key
-DIGEST_EMAIL=your@email.com
-API_SECRET=random_secret_string
+API_SECRET=any_random_secret_string
 ```
 
-**3. Run the database schema**
+### 3. Set up the database
 
-Run `supabase/schema.sql` in the Supabase SQL Editor.
+Run the SQL migrations in your Supabase SQL Editor to create the `jobs`, `interview_rounds`, `contacts`, and `application_packages` tables with Row Level Security enabled.
 
-**4. Start the dev server**
+### 4. Run locally
+
 ```bash
 npm run dev
 ```
 
+Open [http://localhost:3000](http://localhost:3000) and create an account.
+
 ## Deployment
 
-Deploy on Vercel. Set the same environment variables in the Vercel project settings. Each push to `main` triggers an automatic redeploy.
-
-## API Routes
-
-| Endpoint | Method | Description |
-|---|---|---|
-| `/api/ai/cover-letter` | POST | Generate cover letter via Groq |
-| `/api/ai/interview-prep` | POST | Generate interview prep guide via Groq |
-| `/api/email/digest` | POST | Send weekly digest email via Resend |
-
-All API routes are origin-guarded. External requests require `Authorization: Bearer <API_SECRET>`.
+Deployed on Vercel. Connect the repo and add the same environment variables in the Vercel project settings.
